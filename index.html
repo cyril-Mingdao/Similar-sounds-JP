@@ -86,6 +86,8 @@ body.hidejapanese .jm.sel{background:var(--white);box-shadow:none}
 .syl{text-align:center;min-width:0}
 .syl .big{font-size:min(56cqh,34cqw,calc(62cqw / var(--n,1)));line-height:1;white-space:nowrap}
 .syl .formula{font-size:min(11cqh,6cqw);color:var(--yellow);margin-top:3cqh;letter-spacing:.05em;white-space:nowrap}
+a.big{display:block;width:max-content;margin:0 auto;color:inherit;text-decoration:none;cursor:pointer;border-radius:12px}
+@media (hover:hover){ a.big:hover{color:var(--yellow)} }
 .syl .empty{font-size:min(9cqh,5cqw);color:var(--mute)}
 body.hidejapanese .syl .big,body.hidejapanese .syl .formula{visibility:hidden}
 .ctrl{display:flex;flex-direction:column;align-items:center;gap:4cqh}
@@ -203,7 +205,7 @@ footer{flex:none;font-size:clamp(.6rem,1.4vmin,.75rem);color:#777;text-align:cen
     </div>
   </section>
 </main>
-<footer>© 2026 詹宗龍（臺中明道中學）｜聲母韻母音：詹宗龍老師自錄｜台語音：陽明交大台語 TTS｜日語語音：Microsoft Edge TTS｜臺羅依教育部拼音方案　　簡報筆 ▶ 聲母→韻母→聲調→答案→台語音→下一題／◀ 倒退｜空白 播放｜S 慢速｜Enter 依序公布｜A 全部公布｜R 隨機｜T 倒數｜Esc 清空</footer>
+<footer>© 2026 詹宗龍（臺中明道中學）｜聲母韻母音：詹宗龍老師自錄｜台語音：陽明交大台語 TTS｜日語語音：Microsoft Edge TTS｜臺羅依教育部拼音方案　　點假名查 Mazii 辭典　　簡報筆 ▶ 聲母→韻母→聲調→答案→台語音→下一題／◀ 倒退｜空白 播放｜S 慢速｜Enter 依序公布｜A 全部公布｜R 隨機｜T 倒數｜Esc 清空</footer>
 
 <script>/* 每次載入都取最新的題庫與共用程式，避免快取造成新舊檔混用 */
 document.write('<script src="data.js?v=' + Date.now() + '"><\/script><script src="common.js?v=' + Date.now() + '"><\/script>');</script>
@@ -456,7 +458,9 @@ function update(sound){
     syl.innerHTML = '<div class="empty">請老師點選'+parts.join('和')+'</div>';
   } else {
     var f = cur.c.kana.charAt(0) + ' ＋ ' + cur.v.k + (cur.t.j ? ' ＋ ' + cur.t.k : '');
-    syl.innerHTML = '<div class="big ja" style="--n:'+cur.ch.length+'">'+cur.ch+'</div><div class="formula ja">'+f+'</div>';
+    /* 點組合結果的假名：另開分頁到 Mazii 日華辭典查這個假名（v5） */
+    var url = 'https://mazii.net/zh-TW/search/word/jatw/' + encodeURIComponent(cur.ch);
+    syl.innerHTML = '<a class="big ja" style="--n:'+cur.ch.length+'" href="'+url+'" target="_blank" rel="noopener" title="到 Mazii 辭典查「'+cur.ch+'」">'+cur.ch+'</a><div class="formula ja">'+f+'</div>';
   }
   setStep(0);
   if(sound && cur) play(false);
