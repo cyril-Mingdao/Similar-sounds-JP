@@ -410,8 +410,8 @@ function buildGrid(id, list, key){
   var box = $(id);
   list.forEach(function(x, i){
     var b = document.createElement('button');
-    /* 子音牌卡只放 あ段 假名（か、さ…），不寫「行」；朗讀標籤仍用「か行」 */
-    var face = key==='c' ? x.kana.charAt(0) : (x.k || '無'), name = key==='c' ? x.label : face;
+    /* 子音牌卡、組合式、說明一律只放 あ段 假名（か、さ…），不寫「行」「段」（v4 統一） */
+    var face = key==='c' ? x.kana.charAt(0) : (x.k || '無'), name = face;
     b.className = 'jm' + (key==='t' && x.j==='' ? ' zero' : '');
     var t = x.tl===null ? '—' : (x.tl==='' ? (key==='t' ? '' : '∅') : (key==='t' ? '-'+x.tl : x.tl));
     b.innerHTML = '<span class="ja">'+face+'</span><span class="t tl'+(x.tl===null?' none':'')+'">'+t+'</span>';
@@ -448,14 +448,14 @@ function update(sound){
   msg('');
   var syl = $('syl');
   if(cur && cur.bad){
-    syl.innerHTML = '<div class="empty">日語沒有「'+cur.c.label+' ＋ '+cur.v.k+'」這種假名<br>（わ 只能單獨用）</div>';
+    syl.innerHTML = '<div class="empty">日語沒有「'+cur.c.kana.charAt(0)+' ＋ '+cur.v.k+'」這種假名<br>（わ 只能單獨用）</div>';
     cur = null;
   } else if(!cur){
     var parts = [];
     if(sel.c<0) parts.push('子音'); if(sel.v<0) parts.push('母音');
     syl.innerHTML = '<div class="empty">請老師點選'+parts.join('和')+'</div>';
   } else {
-    var f = cur.c.label + ' ＋ ' + cur.v.k + (cur.t.j ? ' ＋ ' + cur.t.k : '');
+    var f = cur.c.kana.charAt(0) + ' ＋ ' + cur.v.k + (cur.t.j ? ' ＋ ' + cur.t.k : '');
     syl.innerHTML = '<div class="big ja" style="--n:'+cur.ch.length+'">'+cur.ch+'</div><div class="formula ja">'+f+'</div>';
   }
   setStep(0);
@@ -484,7 +484,7 @@ function render(){
   var iniVal = NONE, iniSub = r ? r.why : '';
   if(x){
     iniVal = x.ini==='' ? '∅' : x.ini;
-    iniSub = x.ini==='' ? '零聲母（'+r.c.note+'）' : r.c.label+(r.c.note ? '：'+r.c.note : '');
+    iniSub = x.ini==='' ? '零聲母（'+r.c.note+'）' : r.c.kana.charAt(0)+(r.c.note ? '：'+r.c.note : '');
   }
   setCard($('cIni'), shown.ini && r, iniVal, iniSub, !x);
   // 韻母
