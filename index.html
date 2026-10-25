@@ -7,6 +7,7 @@
   未經著作權人書面授權，不得重製、改作、散布或修改本網頁之全部或一部分。
   臺羅拼寫依教育部《臺灣台語羅馬字拼音方案》；日語音檔以 Microsoft Edge 語音合成（ja-JP-NanamiNeural）產生，
   公布後點「台語羅馬字」播放的台語音由陽明交大台語 TTS 產生（â、ê 以 Praat 重塑為標準第 5 調）。
+  公布後點「聲母」「韻母」卡播放的聲母、韻母音檔為詹宗龍老師自行錄製（與〈羅馬字拼音互動遊戲〉同一批）。
   聲調依各音檔實際音高（Praat 基頻分析）判定，並經教師審聽修正；只公布近似度 100% 及教師審聽修正過的組合，其餘顯示「無近似音」。
 -->
 <html lang="zh-Hant">
@@ -108,6 +109,9 @@ body.hidejapanese .syl .big,body.hidejapanese .syl .formula{visibility:hidden}
 .card.hid{background:var(--yellow);cursor:pointer}
 .full.hid{cursor:pointer}
 .full.playable{cursor:pointer}
+.card.playable{cursor:pointer}
+.card.playable .lab::after{content:' 🔊'}
+.card.saying .val{color:#8a6d00}
 .full .say{display:none;font-size:min(40cqh,6cqw);line-height:1}
 .full.playable .say{display:inline}
 .full.saying .val{color:#8a6d00}
@@ -199,7 +203,7 @@ footer{flex:none;font-size:clamp(.6rem,1.4vmin,.75rem);color:#777;text-align:cen
     </div>
   </section>
 </main>
-<footer>© 2026 詹宗龍（臺中明道中學）｜台語音：陽明交大台語 TTS｜日語語音：Microsoft Edge TTS｜臺羅依教育部拼音方案　　簡報筆 ▶ 聲母→韻母→聲調→答案→台語音→下一題／◀ 倒退｜空白 播放｜S 慢速｜Enter 依序公布｜A 全部公布｜R 隨機｜T 倒數｜Esc 清空</footer>
+<footer>© 2026 詹宗龍（臺中明道中學）｜聲母韻母音：詹宗龍老師自錄｜台語音：陽明交大台語 TTS｜日語語音：Microsoft Edge TTS｜臺羅依教育部拼音方案　　簡報筆 ▶ 聲母→韻母→聲調→答案→台語音→下一題／◀ 倒退｜空白 播放｜S 慢速｜Enter 依序公布｜A 全部公布｜R 隨機｜T 倒數｜Esc 清空</footer>
 
 <script>/* 每次載入都取最新的題庫與共用程式，避免快取造成新舊檔混用 */
 document.write('<script src="data.js?v=' + Date.now() + '"><\/script><script src="common.js?v=' + Date.now() + '"><\/script>');</script>
@@ -309,6 +313,30 @@ function playTaigi(){
   player.volume = moe ? 0.7 : 1;
   all.classList.add('saying');
   var done = function(){ all.classList.remove('saying'); };
+  player.onended = done; player.onerror = done;
+  var p = player.play(); if(p && p.catch) p.catch(done);
+}
+
+/* 公布後點聲母／韻母卡：播放詹宗龍老師自行錄製的聲母、韻母音檔
+   （與〈羅馬字拼音互動遊戲〉https://cyril-mingdao.github.io/spell/ 同一批，複製在 audio_spell\） */
+var SPELL = {ini:'b g h j k kh l m n ng p ph s t th ts tsh'.split(' '),
+             fin:'a ah ai ainn ak am an ang ann annh ap at au auh aunn e eh enn ennh i ia iah iak iam ian iang iann iap iat iau iauh iaunn ih ik im in ing inn innh io ioh iok iong ip it iu iuh iunn m ng o oh ok om ong onn onnh oo op u ua uah uai uainn uan uang uann uat ue ueh uh ui uih uinn un ut'.split(' ')};
+var SPELL_DIR = {ini:'initial', fin:'final'}, SPELL_CARD = {ini:'cIni', fin:'cFin'};
+function spellSrc(k){
+  var x = cur && cur.info; if(!x) return null;
+  var v = x[k];
+  return v && SPELL[k].indexOf(v) >= 0 ? 'audio_spell/' + SPELL_DIR[k] + '/' + v + '.mp3' : null;
+}
+function playSpell(k){
+  stopAuto();
+  var src = spellSrc(k), el = $(SPELL_CARD[k]);
+  if(!src){ msg(cur && cur.info && cur.info[k] ? '「' + cur.info[k] + '」沒有自錄音檔' : ''); return; }
+  if('speechSynthesis' in window) speechSynthesis.cancel();
+  player.pause();
+  player.src = src;
+  player.volume = 1; player.playbackRate = 1;
+  el.classList.add('saying');
+  var done = function(){ el.classList.remove('saying'); };
   player.onended = done; player.onerror = done;
   var p = player.play(); if(p && p.catch) p.catch(done);
 }
@@ -470,6 +498,11 @@ function render(){
     toneSub = '第' + x.tone + '調．' + ti.name + '（' + ti.shape + '）';
   }
   setCard($('cTone'), shown.tone && r, toneVal, toneSub, !x);
+  ['ini','fin'].forEach(function(k){
+    var el = $(SPELL_CARD[k]);
+    el.classList.toggle('playable', !!(shown[k] && spellSrc(k)));
+    if(!shown[k]) el.classList.remove('saying');
+  });
   // 臺羅
   var all = $('cAll'), showAll = shown.all && r;
   var wasHidden = all.classList.contains('hid');
@@ -581,7 +614,9 @@ $('btnAll').addEventListener('click', revealAll);
 $('btnRand').addEventListener('click', randomPick);
 $('btnClear').addEventListener('click', clearAll);
 [['cIni','ini'],['cFin','fin'],['cTone','tone']].forEach(function(p){
-  $(p[0]).addEventListener('click', function(){ revealOne(p[1]); });
+  $(p[0]).addEventListener('click', function(){
+    if(shown[p[1]] && SPELL[p[1]]) playSpell(p[1]); else revealOne(p[1]);
+  });
 });
 $('cAll').addEventListener('click', function(){
   if(shown.all) playTaigi(); else revealOne('all');
