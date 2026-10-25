@@ -50,10 +50,8 @@ main{flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1fr) minmax
 .jm{position:relative;container-type:size;min-width:0;min-height:0;border:2px solid var(--black);background:var(--white);border-radius:clamp(6px,1.2vmin,12px);padding:0;
   display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.05;overflow:hidden}
 .jm .ja{font-size:min(62cqh,70cqw)}
-.jm.wide .ja{font-size:min(50cqh,36cqw)}
 .jm .t{display:none;font-size:min(24cqh,30cqw);color:#666}
 body.showmap .jm .ja{font-size:min(46cqh,60cqw)}
-body.showmap .jm.wide .ja{font-size:min(40cqh,32cqw)}
 body.showmap .jm .t{display:block}
 .jm .t.none{color:#bbb}
 .jm.zero .ja{font-size:min(36cqh,34cqw)}
@@ -384,11 +382,12 @@ function buildGrid(id, list, key){
   var box = $(id);
   list.forEach(function(x, i){
     var b = document.createElement('button');
-    var face = key==='c' ? x.label : (x.k || '無');
-    b.className = 'jm' + (key==='c' ? ' wide' : '') + (key==='t' && x.j==='' ? ' zero' : '');
+    /* 子音牌卡只放 あ段 假名（か、さ…），不寫「行」；朗讀標籤仍用「か行」 */
+    var face = key==='c' ? x.kana.charAt(0) : (x.k || '無'), name = key==='c' ? x.label : face;
+    b.className = 'jm' + (key==='t' && x.j==='' ? ' zero' : '');
     var t = x.tl===null ? '—' : (x.tl==='' ? (key==='t' ? '' : '∅') : (key==='t' ? '-'+x.tl : x.tl));
     b.innerHTML = '<span class="ja">'+face+'</span><span class="t tl'+(x.tl===null?' none':'')+'">'+t+'</span>';
-    b.setAttribute('aria-label', key==='t' && !x.j ? '無尾音' : face);
+    b.setAttribute('aria-label', key==='t' && !x.j ? '無尾音' : name);
     b.addEventListener('click', function(){ sel[key] = i; update(true); });
     /* 右上角播放鈕：只播這張牌卡的單音，不改變選取 */
     var src = jamoSrc(key, x.j);
@@ -396,8 +395,8 @@ function buildGrid(id, list, key){
       var sp = document.createElement('span');
       sp.className = 'sp'; sp.textContent = '🔊';
       sp.setAttribute('role', 'button');
-      sp.setAttribute('aria-label', '播放 ' + face + ' 的音');
-      sp.title = '播放 ' + face + ' 的音';
+      sp.setAttribute('aria-label', '播放 ' + name + ' 的音');
+      sp.title = '播放 ' + name + ' 的音';
       b._src = src; b._sp = sp; b.classList.add('has-sp');
       (function(src, sp){
         sp.addEventListener('click', function(e){ e.stopPropagation(); playJamo(src, sp); });
